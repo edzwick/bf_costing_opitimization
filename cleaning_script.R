@@ -43,12 +43,11 @@ ggplot(event_count.df, aes(date, Received_IRS)) +
 
 #### look at smc budget items ####
 smc_budget <- budget.df %>% 
-  filter(grepl("SMC | chemoprevention | Chemoprevention | smc | CPS | cps",`Row title`))
+  filter(grepl("Seasonal malaria chemoprevention",`Global Fund interventions`))
 head(smc_budget)
 view(smc_budget)
 
-smc_budget$`Row title`
-
 write.csv(smc_budget,'C:/Users/edz9905/Box/erin-work/BF_costing_data/cleaned_data/smc_budget.csv')
+
 
 
