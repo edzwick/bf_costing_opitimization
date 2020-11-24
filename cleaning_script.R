@@ -22,7 +22,7 @@ head(unit_costs.df)
 str(unit_costs.df)
 view(unit_costs.df)
 
-event_count.df <- read_csv('BF NSP projection 0/monthly_Event_Count.csv')
+event_count.df <- read_csv('BF_NSP projection_0/monthly_Event_Count.csv')
 head(event_count.df)
 str(event_count.df)
 view(event_count.df)
@@ -47,7 +47,7 @@ smc_budget <- budget.df %>%
 head(smc_budget)
 view(smc_budget)
 
-write.csv(smc_budget,'C:/Users/edz9905/Box/erin-work/BF_costing_data/cleaned_data/smc_budget.csv')
+write.csv(smc_budget,'C:/Users/edz9905/Box/erin-work/BF_costing_data/cleaned_data/smc_budget_script_cleaned.csv')
 
 
 
