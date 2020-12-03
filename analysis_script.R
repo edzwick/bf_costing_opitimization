@@ -300,4 +300,149 @@ pdf("output/figures/GF_module_interventions_separate3.pdf", height = 11, width =
 separate_modules
 dev.off()
 
+#### Activities ####
+full_budget.df %>% 
+  filter(Level == "Activity")
 
+activities.df <- full_budget.df %>% 
+  filter(Level == "Activity" | Level == "Sub-activity")
+str(activities.df)
+
+arrange(activities.df, Numbering)
+
+activity_ptg_bar <- function(df, x_var, y_var, fill_var, x_label, y_label, 
+                             fill_label, axis_label, pct = F) 
+{
+  if(pct)
+  {
+    ggplot(df, aes_string(x = x_var, y = y_var, fill = fill_var)) +
+      geom_bar(stat = 'identity', position = "fill") +
+      scale_fill_viridis(discrete = T, option = 'plasma', na.value = "grey") +
+      labs(title = paste("Cost of ", x_label, " by ", fill_label),
+           y = y_label, fill = fill_label, x = x_label) +
+      theme(legend.position = 'bottom',legend.key.size = unit(0.2, "cm"), legend.box="horizontal", 
+            legend.margin=margin(), legend.text = element_text(size = 5),
+            legend.title=element_text(size=10), plot.title = element_text(hjust = 0.5),
+            axis.text.x = element_text(angle = 90, hjust=0.1, vjust = 0.5)) +
+      scale_x_discrete(breaks = df[[x_var]], labels = str_extract(df[[axis_label]], "^.{5}")) +
+      guides(fill=guide_legend(nrow=4,byrow=T, title.position="top", title.hjust = 0.5))
+  }
+  else
+  {
+    ggplot(df, aes_string(x = x_var, y = y_var, fill = fill_var)) +
+      geom_bar(stat = 'identity', position = "stack") +
+      scale_fill_viridis(discrete = T, option = 'plasma', na.value = "grey") +
+      labs(title = paste("Cost of ", x_label, " by ", fill_label),
+           y = y_label, fill = fill_label, x = x_label) +
+      theme(legend.position = 'bottom',legend.key.size = unit(0.2, "cm"), legend.box="horizontal", 
+            legend.margin=margin(), legend.text = element_text(size = 5),
+            legend.title=element_text(size=10), plot.title = element_text(hjust = 0.5),
+            axis.text.x = element_text(angle = 90, hjust=0.1, vjust = 0.5)) +
+      scale_x_discrete(breaks = df[[x_var]], labels = str_extract(df[[axis_label]], "^.{5}")) +
+      guides(fill=guide_legend(nrow=4,byrow=T, title.position="top", title.hjust = 0.5)) 
+  }
+}
+
+actXmod <- activity_ptg_bar(activities.df %>% 
+                              filter(Level == "Sub-activity"),
+                            "Activity", "`Cost 2021 (CFA)`", "`Global Fund Modules`", 
+                            "Activity", "Cost 2021 (CFA)", "GF module", "Numbering", pct = T)
+actXmod
+
+pdf("output/figures/activity_by_module.pdf", height = 5, width = 8.5)
+actXmod
+dev.off()
+
+# get number/activity match
+temp <- subset(activities.df, activities.df$Level == 
+         "Activity")[order(subset(activities.df, activities.df$Level == "Activity")$Activity),]
+temp2 <- temp[,c("Numbering","Goal", "Strategy", "Activity")]
+write.csv(temp2, 'activity_numbering.csv')
+
+# activity x GF cost category
+act_cost_cat <- activity_ptg_bar(activities.df %>% 
+                              filter(Level == "Sub-activity"),
+                            "Activity", "`Cost 2021 (CFA)`", "`Global Fund Cost Categories`", 
+                            "Activity", "% of cost", "GF cost category", "Numbering", pct = T)
+act_cost_cat
+
+pdf("output/figures/activity_by_cost_cat_pc.pdf", height = 5, width = 8.5)
+act_cost_cat
+dev.off()
+
+# separate activities into bar plots
+activity_bar <- function(df, filter_var, x_var, y_var, fill_var, x_label, 
+                         y_label, fill_label, axis_label) 
+{
+  ggplot(df, aes_string(x = x_var, y = y_var, fill = fill_var)) +
+    geom_bar(stat = 'identity', position = "fill") +
+    scale_fill_viridis(discrete = T, option = 'plasma', na.value = "grey") +
+    labs(title = str_wrap(filter_var, 50),
+         y = y_label, fill = fill_label, x = x_label) +
+    theme(legend.position = 'bottom',legend.key.size = unit(0.2, "cm"), legend.box="vertical", 
+          legend.margin=margin(), legend.text = element_text(size = 5),
+          legend.title=element_text(size=8), 
+          plot.title = element_text(size = 8, hjust = 0.5)) +
+    scale_x_discrete(breaks = df[[x_var]], labels = str_extract(df[[axis_label]], "^.{5}")) +
+    guides(fill=guide_legend(ncol=1,byrow=F, title.position="top", title.hjust = 0.5))
+}
+
+activity <- unique(subset(full_budget.df, full_budget.df$Level == "Sub-activity")$Activity)
+activity <- as.character(activity)
+
+plot_list <- list()
+
+for(i in 1:length(activity))
+{
+  temp_plot <- activity_bar(activities.df %>% 
+                                filter(Level == "Sub-activity") %>% 
+                                filter(Activity == activity[i]),
+                              activity[i],"Activity", "`Cost 2021 (CFA)`", "`Global Fund Modules`",
+                              "", "% of cost", "Intervention category", "Numbering")
+  plot_list[[i]] <- temp_plot
+}
+plot_list[[1]]
+length(plot_list)
+separate_activities <- plot_grid(plotlist = plot_list[c(25,26,27,28,29,30)], ncol = 2, byrow = F)
+separate_activities
+
+
+pdf("output/figures/activity_intervention_separate5.pdf", height = 11, width = 8.5)
+separate_activities
+dev.off()
+
+
+plot_list <- list()
+for(i in 1:length(activity))
+{
+  temp_plot <- activity_bar(activities.df %>% 
+                              filter(Level == "Sub-activity") %>% 
+                              filter(Activity == activity[i]),
+                            activity[i],"Activity", "`Cost 2021 (CFA)`", "`Global Fund Modules`",
+                            "", "% of cost", "GF module", "Numbering")
+  plot_list[[i]] <- temp_plot
+}
+separate_activities <- plot_grid(plotlist = plot_list[c(25,26,27,28,29,30)-24], ncol = 2, byrow = F)
+separate_activities
+
+pdf("output/figures/activity_GFmodule_separate1.pdf", height = 11, width = 8.5)
+separate_activities
+dev.off()
+
+
+plot_list <- list()
+for(i in 1:length(activity))
+{
+  temp_plot <- activity_bar(activities.df %>% 
+                              filter(Level == "Sub-activity") %>% 
+                              filter(Activity == activity[i]),
+                            activity[i],"Activity", "`Cost 2021 (CFA)`", "`Global Fund Cost Categories`",
+                            "", "% of cost", "GF cost category", "Numbering")
+  plot_list[[i]] <- temp_plot
+}
+separate_activities <- plot_grid(plotlist = plot_list[c(25,26,27,28,29,30)], ncol = 2, byrow = F)
+separate_activities
+
+pdf("output/figures/activity_GFcost_cat_separate5.pdf", height = 11, width = 8.5)
+separate_activities
+dev.off()
